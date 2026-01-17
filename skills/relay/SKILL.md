@@ -21,6 +21,7 @@ description: >
 | Paginated/infinite list | `usePaginationFragment` | Requires `@connection` directive |
 | Search/filter with refetch | `useRefetchableFragment` | Fragment must have `@refetchable` |
 | Create/Update/Delete | `useMutation` | With optimistic updates when needed |
+| Real-time updates | `useSubscription` | With `@appendNode` for connections |
 
 ## Core Principle: Fragment-First Development
 
@@ -238,6 +239,7 @@ Store: {
 | Fragment arguments, composition, data masking | [fragments.md](./fragments.md) | Complex fragment patterns |
 | Query loading strategies, preloading, fetch policies | [queries.md](./queries.md) | Route-level data loading |
 | Optimistic updates, updaters, connections | [mutations.md](./mutations.md) | Complex mutations |
+| Real-time updates, `@appendNode` in subscriptions | [subscriptions.md](./subscriptions.md) | WebSocket/live data |
 | `@connection`, `usePaginationFragment`, cursors | [pagination.md](./pagination.md) | Lists and infinite scroll |
 | Compiler config, generated types, aliasing | [typescript.md](./typescript.md) | Setup and type issues |
 | Common errors, debugging tools | [troubleshooting.md](./troubleshooting.md) | When things break |
@@ -276,6 +278,7 @@ import {
   usePreloadedQuery,
   useQueryLoader,
   useMutation,
+  useSubscription,
   usePaginationFragment,
   useRefetchableFragment,
 } from 'react-relay';
