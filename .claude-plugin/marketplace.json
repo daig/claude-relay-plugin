@@ -7,7 +7,7 @@
     {
       "name": "relay-graphql",
       "source": {
-        "type": "github",
+        "source": "github",
         "repo": "daig/claude-relay-plugin"
       },
       "description": "Claude Code skills for GraphQL fundamentals and Relay client in React/TypeScript."
