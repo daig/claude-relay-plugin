@@ -6,8 +6,11 @@
   "plugins": [
     {
       "name": "relay-graphql",
-      "source": ".",
-      "description": "Claude Code skill for Relay GraphQL client in React/TypeScript. Covers fragments, queries, mutations, pagination, and TypeScript integration."
+      "source": {
+        "type": "github",
+        "repo": "daig/claude-relay-plugin"
+      },
+      "description": "Claude Code skills for GraphQL fundamentals and Relay client in React/TypeScript."
     }
   ]
 }
