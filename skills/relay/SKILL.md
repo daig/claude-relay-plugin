@@ -218,7 +218,8 @@ Store: {
 **Data not updating after mutation?**
 - [ ] Mutation returns object with `id` field
 - [ ] Field names match exactly (case-sensitive)
-- [ ] For connections: using `@appendEdge`/`@prependEdge` or updater function
+- [ ] For connections: using `@appendEdge`/`@appendNode` or updater function
+- [ ] Using correct directive: `@appendEdge` for edge types, `@appendNode` for node types
 
 **Fragment returns null?**
 - [ ] Fragment is spread in parent query
@@ -295,8 +296,12 @@ import type { Component_fragment$key } from './__generated__/Component_fragment.
 | `@connection` | Mark a paginated field | `@connection(key: "UserPosts_posts")` |
 | `@argumentDefinitions` | Define fragment variables | `@argumentDefinitions(count: {type: "Int", defaultValue: 10})` |
 | `@arguments` | Pass values to fragment | `...UserPosts_user @arguments(count: 5)` |
-| `@appendEdge` | Add to connection end | `@appendEdge(connections: $connections)` |
-| `@prependEdge` | Add to connection start | `@prependEdge(connections: $connections)` |
+| `@appendEdge` | Add edge to connection end | `@appendEdge(connections: $connections)` |
+| `@prependEdge` | Add edge to connection start | `@prependEdge(connections: $connections)` |
+| `@appendNode` | Wrap node in edge, add to end | `@appendNode(connections: $connections, edgeTypeName: "PostEdge")` |
+| `@prependNode` | Wrap node in edge, add to start | `@prependNode(connections: $connections, edgeTypeName: "PostEdge")` |
 | `@deleteEdge` | Remove from connection | `@deleteEdge(connections: $connections)` |
 | `@deleteRecord` | Remove from store entirely | `@deleteRecord` |
 | `@inline` | Break data masking | `@inline` on fragment |
+
+**Choosing between Edge and Node directives:** Use `@appendEdge`/`@prependEdge` when the mutation returns an edge type (with `cursor` and `node` fields). Use `@appendNode`/`@prependNode` when the mutation returns a node directly and you need Relay to wrap it in an edge. See [mutations.md](./mutations.md) for details.

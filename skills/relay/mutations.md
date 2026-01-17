@@ -159,10 +159,26 @@ commit({
 
 ## Connection Mutations with Declarative Directives
 
-### Adding to a Connection
+### Choosing Between @appendEdge and @appendNode
+
+Relay provides two sets of directives for adding items to connections:
+
+| Directive | Use when server returns | Required args |
+|-----------|------------------------|---------------|
+| `@appendEdge` / `@prependEdge` | An **edge** type (has `cursor` + `node`) | `connections` |
+| `@appendNode` / `@prependNode` | A **node** directly | `connections` + `edgeTypeName` |
+
+**How to decide:**
+1. Check your schema - does the mutation payload have an `*Edge` field? Use `@appendEdge`
+2. Does it only return the node type directly? Use `@appendNode` with `edgeTypeName`
+
+Most GraphQL servers with Relay support (PostGraphile, Hasura, Prisma) return edge types, so prefer `@appendEdge`.
+
+### Adding with @appendEdge (Preferred)
+
+Use when the mutation returns an edge type:
 
 ```typescript
-// Mutation with @appendEdge
 graphql`
   mutation CreatePostMutation($input: CreatePostInput!, $connections: [ID!]!) {
     createPost(input: $input) {
@@ -182,17 +198,56 @@ graphql`
 commit({
   variables: {
     input: { title, content },
-    connections: [connectionId], // Get this from ConnectionHandler
+    connections: [connectionId],
   },
 });
 ```
 
+### Adding with @appendNode
+
+Use when the mutation returns a node and you need Relay to create the edge wrapper:
+
+```typescript
+graphql`
+  mutation CreatePostMutation($input: CreatePostInput!, $connections: [ID!]!) {
+    createPost(input: $input) {
+      post @appendNode(connections: $connections, edgeTypeName: "PostEdge") {
+        id
+        title
+        ...PostCard_post
+      }
+    }
+  }
+`;
+```
+
+The `edgeTypeName` must match your schema's edge type name exactly.
+
 ### Getting Connection ID
 
+Two approaches:
+
+**Option 1: Using `__id` in your query (simpler)**
+```typescript
+const data = useLazyLoadQuery(graphql`
+  query UserPostsQuery($userId: ID!) {
+    user(id: $userId) {
+      postsConnection {
+        __id  # Relay provides this automatically
+        edges { node { id ...PostCard_post } }
+      }
+    }
+  }
+`, { userId });
+
+// Use directly
+const connectionId = data.user?.postsConnection?.__id;
+```
+
+**Option 2: Using ConnectionHandler (when you don't have query access)**
 ```typescript
 import { ConnectionHandler } from 'relay-runtime';
 
-// In your component with the connection
 const connectionId = ConnectionHandler.getConnectionID(
   userId,           // Parent record ID
   'UserPosts_posts' // Connection key from @connection directive
@@ -202,6 +257,7 @@ const connectionId = ConnectionHandler.getConnectionID(
 ### Prepending to Connection
 
 ```typescript
+// With edge type
 graphql`
   mutation CreatePostMutation($input: CreatePostInput!, $connections: [ID!]!) {
     createPost(input: $input) {
@@ -210,6 +266,18 @@ graphql`
           id
           ...PostCard_post
         }
+      }
+    }
+  }
+`;
+
+// With node type
+graphql`
+  mutation CreatePostMutation($input: CreatePostInput!, $connections: [ID!]!) {
+    createPost(input: $input) {
+      post @prependNode(connections: $connections, edgeTypeName: "PostEdge") {
+        id
+        ...PostCard_post
       }
     }
   }
@@ -346,9 +414,10 @@ const handleComplete = (response: CreatePostMutation$data) => {
 1. **Return updated fields** - Include all fields that might change in mutation response
 2. **Return object IDs** - Enables automatic store updates
 3. **Use optimistic updates** - For instant UI feedback
-4. **Handle connections explicitly** - Use `@appendEdge`/`@deleteEdge` or updaters
-5. **Type your mutations** - Use generated types for variables and responses
-6. **Handle errors gracefully** - Both network errors and business logic errors
+4. **Handle connections explicitly** - Use `@appendEdge`/`@appendNode`/`@deleteEdge` or updaters
+5. **Choose the right directive** - `@appendEdge` when server returns edge, `@appendNode` when it returns node
+6. **Type your mutations** - Use generated types for variables and responses
+7. **Handle errors gracefully** - Both network errors and business logic errors
 
 ## Common Mutation Patterns
 
