@@ -1,12 +1,12 @@
 {
   "name": "relay-graphql",
-  "version": "1.0.0",
-  "description": "Claude Code skill for Relay GraphQL client in React/TypeScript applications. Covers fragments, queries, mutations, pagination, optimistic updates, and TypeScript integration.",
+  "version": "1.1.0",
+  "description": "Claude Code skills for GraphQL fundamentals and Relay client. Includes two skills: (1) GraphQL fundamentals covering type system, SDL, operations, nullability, and codegen; (2) Relay patterns for fragments, queries, mutations, pagination, and optimistic updates.",
   "author": {
-    "name": "Your Name",
-    "url": "https://github.com/yourusername"
+    "name": "Dai",
+    "url": "https://github.com/daig"
   },
-  "repository": "https://github.com/yourusername/claude-relay-plugin",
+  "repository": "https://github.com/daig/claude-relay-plugin",
   "license": "MIT",
   "keywords": [
     "relay",
@@ -16,6 +16,11 @@
     "fragments",
     "mutations",
     "pagination",
-    "data-fetching"
+    "data-fetching",
+    "schema",
+    "SDL",
+    "types",
+    "codegen",
+    "nullability"
   ]
 }
