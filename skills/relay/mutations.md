@@ -254,6 +254,79 @@ const connectionId = ConnectionHandler.getConnectionID(
 );
 ```
 
+### Architectural Pattern: Sibling Components Sharing a Connection
+
+When one component displays a connection and a sibling component mutates it, **lift the query to their shared parent**:
+
+```
+// ❌ Anti-pattern: Sibling components each managing connection separately
+ParentComponent
+├── MessageList (queries messages, has @connection)
+└── MessageComposer (queries same connection for __id, does mutation)
+    // Problem: Two queries for same data, complex ID passing via callbacks
+
+// ✅ Better: Parent owns the query, children receive what they need
+ParentComponent (owns query with @connection, passes data down)
+├── MessageList (receives messages as props - pure render)
+└── MessageComposer (receives connectionId as prop - does mutation)
+```
+
+**Implementation:**
+
+```typescript
+// Parent owns the query and subscription
+function ChannelView({ channelId }) {
+  const data = useLazyLoadQuery(graphql`
+    query ChannelViewQuery($channelId: ID!) {
+      channel(id: $channelId) {
+        messagesConnection @connection(key: "ChannelView_messages") {
+          __id
+          edges { node { id ...MessageList_message } }
+        }
+      }
+    }
+  `, { channelId });
+
+  const connectionId = data.channel?.messagesConnection?.__id;
+
+  return (
+    <>
+      <MessageList messages={data.channel?.messagesConnection} />
+      <MessageComposer connectionId={connectionId} channelId={channelId} />
+    </>
+  );
+}
+
+// Child just renders - no Relay hooks needed
+function MessageList({ messages }) {
+  return messages?.edges?.map(({ node }) => <Message key={node.id} message={node} />);
+}
+
+// Child just mutates - receives connectionId as prop
+function MessageComposer({ connectionId, channelId }) {
+  const [commit] = useMutation(graphql`
+    mutation CreateMessageMutation($input: CreateMessageInput!, $connections: [ID!]!) {
+      createMessage(input: $input) {
+        messageEdge @appendEdge(connections: $connections) {
+          node { id ...MessageList_message }
+        }
+      }
+    }
+  `);
+
+  const send = (content) => {
+    commit({ variables: { input: { channelId, content }, connections: [connectionId] } });
+  };
+  // ...
+}
+```
+
+**Benefits:**
+- Single source of truth for the connection
+- No callback prop drilling for connection IDs
+- Simpler child components (display component has no Relay hooks)
+- Subscription logic lives with the query it refreshes
+
 ### Prepending to Connection
 
 ```typescript

@@ -290,14 +290,40 @@ fragment UserPosts_user on User {
 
 ### Connection Key with Filters
 
-When the same connection has different filter states:
+The `filters` parameter controls which arguments are part of the connection's identity:
 
 ```graphql
-# Use filters parameter to differentiate
+# Include category in identity - different categories = different connections
 posts(first: $count, after: $cursor, category: $category)
   @connection(key: "UserPosts_posts", filters: ["category"]) {
   ...
 }
+```
+
+**Important:** By default, ALL non-pagination arguments become part of the connection identity. This affects `ConnectionHandler.getConnection()` and `@appendEdge`:
+
+```graphql
+# ⚠️ orderBy is part of connection identity by default
+messages(first: 100, orderBy: CREATED_AT_ASC)
+  @connection(key: "Chat_messages") {
+  ...
+}
+
+# To use @appendEdge, you must either:
+# 1. Pass filters to ConnectionHandler.getConnection(record, key, { orderBy: "CREATED_AT_ASC" })
+# 2. Or exclude orderBy from identity with filters: []
+```
+
+**Use `filters: []` to ignore all non-pagination arguments:**
+
+```graphql
+# orderBy is NOT part of identity - simpler connection handling
+messages(first: 100, orderBy: CREATED_AT_ASC)
+  @connection(key: "Chat_messages", filters: []) {
+  ...
+}
+
+# Now @appendEdge and ConnectionHandler.getConnection() work without specifying orderBy
 ```
 
 ## Important Behaviors

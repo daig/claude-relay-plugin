@@ -53,6 +53,43 @@ mutation CreatePostMutation($input: CreatePostInput!, $connections: [ID!]!) {
 }
 ```
 
+## Connection ID Issues with @appendEdge
+
+### Symptoms
+- `@appendEdge` doesn't update the UI
+- Connection ID is `undefined` or wrong
+- Complex prop drilling to pass connection IDs between siblings
+
+### Checklist
+
+- [ ] **Query includes `__id`** - Add `__id` field to connection to get its ID
+- [ ] **Same connection queried** - The `__id` must come from the exact connection (same arguments)
+- [ ] **`@connection` directive present** - Required for Relay to track the connection
+- [ ] **`filters: []` if needed** - Non-pagination args (like `orderBy`) are part of connection identity by default
+
+### Common Fix: Lift Query to Shared Parent
+
+If a display component and mutation component are siblings that both need the same connection:
+
+```typescript
+// ❌ Problem: MessageList has @connection, MessageComposer needs its ID
+// Results in: callback props, duplicate queries, or connectionId undefined
+
+// ✅ Solution: Lift query to parent, pass data/connectionId down
+function Parent() {
+  const data = useLazyLoadQuery(query); // owns @connection
+  const connectionId = data.messages?.__id;
+  return (
+    <>
+      <MessageList messages={data.messages} />
+      <MessageComposer connectionId={connectionId} />
+    </>
+  );
+}
+```
+
+See [mutations.md](./mutations.md#architectural-pattern-sibling-components-sharing-a-connection) for full pattern.
+
 ## Fragment Data is Null
 
 ### Checklist
