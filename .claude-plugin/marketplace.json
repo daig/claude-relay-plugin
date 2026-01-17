@@ -1,0 +1,14 @@
+{
+  "name": "relay-plugins",
+  "owner": {
+    "name": "Your Name",
+    "email": "your.email@example.com"
+  },
+  "plugins": [
+    {
+      "name": "relay-graphql",
+      "source": ".",
+      "description": "Claude Code skill for Relay GraphQL client in React/TypeScript. Covers fragments, queries, mutations, pagination, and TypeScript integration."
+    }
+  ]
+}
