@@ -8,6 +8,7 @@
   },
   "repository": "https://github.com/daig/claude-relay-plugin",
   "license": "MIT",
+  "skills": ["../skills"],
   "keywords": [
     "relay",
     "graphql",
